@@ -4,22 +4,20 @@ import prisma from '../prisma';
 import { sendResponse } from '../utils/responseUtils';
 import STATUS_CODES from '../utils/statusCodes';
 
-export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
+export const authUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const authHeader = req.headers.authorization;
 
         if (!authHeader) {
-            return sendResponse(res, false, null, 'Authorization header is missing', STATUS_CODES.UNAUTHORIZED);
-        }
-
-        if (!authHeader.startsWith('Bearer ')) {
-            return sendResponse(res, false, null, 'Invalid token format. Use Bearer token', STATUS_CODES.UNAUTHORIZED);
+            sendResponse(res, false, null, 'Please Login to continue', STATUS_CODES.UNAUTHORIZED);
+            return;
         }
 
         const token = authHeader.split(' ')[1];
 
         if (!token) {
-            return sendResponse(res, false, null, 'No token provided', STATUS_CODES.UNAUTHORIZED);
+            sendResponse(res, false, null, 'Please Login to continue', STATUS_CODES.UNAUTHORIZED);
+            return;
         }
 
         try {
@@ -33,14 +31,18 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
             });
 
             if (!user) {
-                return sendResponse(res, false, null, 'User not found', STATUS_CODES.UNAUTHORIZED);
+                sendResponse(res, false, null, 'User not found', STATUS_CODES.UNAUTHORIZED);
+                return;
             }
+
             req.user = user;
             next();
         } catch (error) {
-            return sendResponse(res, false, null, 'Invalid or expired token', STATUS_CODES.UNAUTHORIZED);
+            sendResponse(res, false, null, 'Invalid or expired token', STATUS_CODES.UNAUTHORIZED);
+            return;
         }
     } catch (error: any) {
         sendResponse(res, false, null, error.message, STATUS_CODES.UNAUTHORIZED);
+        return;
     }
 }; 

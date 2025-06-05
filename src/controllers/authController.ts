@@ -4,10 +4,20 @@ import STATUS_CODES from "../utils/statusCodes";
 import { validateLoginSchema, validateregisterUserSchema } from "../validators/authValidator";
 import { comparePassword, generateToken, hashPassword } from "../utils/authUtils";
 import prisma from "../prisma";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
-const userWithoutPassword = (user: any) => {
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+const userWithoutPassword = {
+    id: true,
+    firstName: true,
+    lastName: true,
+    email: true,
+    role: true,
+    createdAt: true,
+    updatedAt: true,
 }
 
 export const signup = async (req: Request, res: Response): Promise<void> => {
@@ -37,12 +47,16 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
                 lastName,
                 email,
                 password: await hashPassword(password),
-            }
+            }, select: userWithoutPassword
         })
 
-        const user = userWithoutPassword(newUser);
+        const formattedUser = {
+            ...newUser,
+            createdAt: dayjs.utc(newUser.createdAt).tz("Asia/Kolkata").format("YYYY-MM-DDTHH:mm"),
+            updatedAt: dayjs.utc(newUser.updatedAt).tz("Asia/Kolkata").format("YYYY-MM-DDTHH:mm"),
+        }
 
-        sendResponse(res, true, user, "User created successfully", STATUS_CODES.CREATED);
+        sendResponse(res, true, formattedUser, "User created successfully", STATUS_CODES.CREATED);
     } catch (error: any) {
         sendResponse(res, false, error, error.message, STATUS_CODES.SERVER_ERROR);
     }
@@ -77,7 +91,14 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         req.user = user;
 
         const token = generateToken(user.id);
-        sendResponse(res, true, { user: userWithoutPassword(user), token }, "Login successful", STATUS_CODES.OK);
+
+        const formattedUser = {
+            ...user,
+            password: undefined,
+            createdAt: dayjs.utc(user.createdAt).tz("Asia/Kolkata").format("YYYY-MM-DDTHH:mm"),
+            updatedAt: dayjs.utc(user.updatedAt).tz("Asia/Kolkata").format("YYYY-MM-DDTHH:mm"),
+        }
+        sendResponse(res, true, { user: formattedUser, token }, "Login successful", STATUS_CODES.OK);
 
     } catch (error: any) {
         sendResponse(res, false, error, error.message, STATUS_CODES.SERVER_ERROR);
