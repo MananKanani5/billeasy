@@ -28,7 +28,9 @@ The database schema is defined in `prisma/schema.prisma` with models for users, 
 
 ## API Documentation
 
-Detailed API documentation is available at: [Postman Documentation](https://documenter.getpostman.com/view/17679201/2sB2x2KZvo)
+The API is live at: [https://billeasy-0ryn.onrender.com/api](https://billeasy-0ryn.onrender.com/api)
+
+Detailed API documentation with example requests is available at: [Postman Documentation](https://documenter.getpostman.com/view/17679201/2sB2x2KZvo)
 
 ## Project Setup
 
