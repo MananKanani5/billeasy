@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { createBook, createReview, getAllBooks, getBookById } from '../controllers/bookController';
+import { createBook, getAllBooks, getBookById } from '../controllers/bookController';
 import { authUser } from '../middlewares/authMiddleware';
+import { createReview } from '../controllers/reviewController';
 
 const router = Router();
 

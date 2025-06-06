@@ -6,7 +6,8 @@ const createBookSchema = Joi.object({
     description: Joi.string().optional(),
     imageUrl: Joi.string().optional(),
     genre: Joi.string().required(),
-})
+});
+
 
 
 export const validateCreateBookSchema = (createBook: any) => createBookSchema.validate(createBook);

@@ -56,5 +56,5 @@ model reviews {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  @@unique([bookId, userId, isDeleted])
+  @@unique([bookId, userId])
 }

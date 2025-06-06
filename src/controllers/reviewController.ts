@@ -5,11 +5,107 @@ import STATUS_CODES from "../utils/statusCodes";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { validateCreateReviewSchema, validateUpdateReviewSchema } from "../validators/reviewValidator";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+export const createReview = async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+    const { error } = validateCreateReviewSchema(req.body);
+    if (error) {
+        sendResponse(res, false, error, error.message, STATUS_CODES.BAD_REQUEST);
+        return;
+    }
+    const { rating, comment } = req.body;
+    const userId = req.user?.id as number;
+
+    try {
+        const existingReview = await prisma.reviews.findFirst({
+            where: {
+                bookId: Number(id),
+                userId: userId,
+            }
+        });
+
+        if (existingReview && existingReview.isDeleted === false) {
+            sendResponse(res, false, null, "You have already reviewed this book", STATUS_CODES.CONFLICT);
+            return;
+        }
+
+
+        const review = await prisma.$transaction(async (prisma) => {
+            const newReview = await prisma.reviews.upsert({
+                where: {
+                    bookId_userId: {
+                        bookId: Number(id),
+                        userId: userId
+                    }
+                },
+                update: {
+                    rating: parseFloat(rating),
+                    comment,
+                    isDeleted: false,
+                    updatedAt: new Date()
+                },
+                create: {
+                    bookId: Number(id),
+                    userId: userId,
+                    rating: parseFloat(rating),
+                    comment
+                },
+                select: {
+                    id: true,
+                    rating: true,
+                    comment: true,
+                    createdAt: true,
+                    updatedAt: true,
+                }
+            });
+
+            const book = await prisma.books.findUnique({
+                where: { id: Number(id), isDeleted: false },
+                select: { avgRating: true, totalReviews: true }
+            });
+
+            if (!book) {
+                throw new Error("Book not found");
+            }
+
+            const newTotalReviews = (book.totalReviews || 0) + 1;
+            const newAvgRating = book.avgRating
+                ? ((book.avgRating * book.totalReviews) + parseFloat(rating)) / newTotalReviews
+                : parseFloat(rating);
+
+            await prisma.books.update({
+                where: { id: Number(id) },
+                data: {
+                    avgRating: Number(newAvgRating.toFixed(2)),
+                    totalReviews: newTotalReviews
+                }
+            });
+
+            return newReview;
+        });
+
+        const formattedReview = {
+            ...review,
+            createdAt: dayjs.utc(review.createdAt).tz("Asia/Kolkata").format("YYYY-MM-DDTHH:mm"),
+            updatedAt: dayjs.utc(review.updatedAt).tz("Asia/Kolkata").format("YYYY-MM-DDTHH:mm"),
+        }
+
+        sendResponse(res, true, formattedReview, "Review created successfully", STATUS_CODES.CREATED);
+    } catch (error: any) {
+        sendResponse(res, false, error, error.message, STATUS_CODES.SERVER_ERROR);
+    }
+}
+
 export const updateReview = async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
+    const { error } = validateUpdateReviewSchema(req.body);
+    if (error) {
+        sendResponse(res, false, error, error.message, STATUS_CODES.BAD_REQUEST);
+        return;
+    }
     const { rating, comment } = req.body;
     const userId = req.user?.id as number;
 
@@ -83,7 +179,7 @@ export const deleteReview = async (req: Request, res: Response): Promise<void> =
 
     try {
         const review = await prisma.reviews.findUnique({
-            where: { id: Number(id) }
+            where: { id: Number(id), isDeleted: false }
         })
 
         if (!review) {

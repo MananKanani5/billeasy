@@ -1,6 +1,8 @@
-# Book Review API
+# Mini Assignment: Book Review API (Node.js)
 
-A RESTful API for a Book Review system built with Node.js, Express, and PostgreSQL. This API allows users to manage books, submit reviews, and search for books.
+## Objective:
+
+Build a RESTful API using Node.js (with Express) for a basic Book Review system. This assignment is designed to assess your understanding of backend fundamentals, authentication, and clean API design.
 
 ## Features
 
@@ -9,7 +11,6 @@ A RESTful API for a Book Review system built with Node.js, Express, and PostgreS
 - Review system with ratings and comments
 - Search functionality
 - Pagination and filtering
-- Role-based access control
 - Soft delete functionality
 
 ## Tech Stack
@@ -19,19 +20,22 @@ A RESTful API for a Book Review system built with Node.js, Express, and PostgreS
 - JWT for authentication
 - TypeScript
 - Day.js for date handling
+- Joi for input validations
 
-## Prerequisites
+## Database Schema
 
-- Node.js (v14 or higher)
-- PostgreSQL
-- npm or yarn
+The database schema is defined in `prisma/schema.prisma` with models for users, books, and reviews. It includes proper relationships, constraints, and soft delete functionality.
+
+## API Documentation
+
+Detailed API documentation is available at: [Postman Documentation](https://documenter.getpostman.com/view/17679201/2sB2x2KZvo)
 
 ## Project Setup
 
 1. Clone the repository:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/MananKanani5/billeasy.git
 cd billeasy
 ```
 
@@ -62,133 +66,28 @@ npx prisma migrate dev
 npm run dev
 ```
 
-## API Documentation
-
-Detailed API documentation is available at: [Postman Documentation](https://documenter.getpostman.com/view/17679201/2sB2x2KZvo)
-
-### Key Endpoints
-
-#### Authentication
-
-```bash
-# Register
-POST /signup
-{
-    "firstName": "John",
-    "lastName": "Doe",
-    "email": "john@example.com",
-    "password": "password123"
-}
-
-# Login
-POST /login
-{
-    "email": "john@example.com",
-    "password": "password123"
-}
-```
-
-#### Books
-
-```bash
-# Get all books (with pagination and filters)
-GET /books?page=1&pageSize=10&genre=fiction&author=John
-
-# Get book by ID
-GET /books/1
-
-# Create book (authenticated)
-POST /books
-{
-    "title": "The Great Gatsby",
-    "author": "F. Scott Fitzgerald",
-    "description": "A story of the fabulously wealthy Jay Gatsby",
-    "imageUrl": "https://example.com/image.jpg",
-    "genre": "fiction"
-}
-
-# Search books
-GET /search?query=gatsby
-```
-
-#### Reviews
-
-```bash
-# Create review (authenticated)
-POST /books/1/reviews
-{
-    "rating": "4.5",
-    "comment": "Great book!"
-}
-
-# Update review (authenticated)
-PUT /reviews/1
-{
-    "rating": "5",
-    "comment": "Updated review"
-}
-
-# Delete review (authenticated)
-DELETE /reviews/1
-```
-
 ## Design Decisions & Assumptions
 
-1. **Role-Based System**
+1. **Role-Based System & Security**
 
-   - Implemented role-based access control for future admin panel
-   - Reviews require approval (isApproved flag) for potential moderation
-   - Different permissions for admin and regular users
+   - Role-based access control with admin/user roles which helps to add review approval system for moderation
+   - password hashing using bcrypt
+   - Input validation using Joi
 
-2. **Soft Delete**
+2. **Data Management**
 
-   - All deletions are soft deletes (isDeleted flag)
-   - Maintains data history and allows for data recovery
-   - Prevents unique constraint violations with reviews
-
-3. **Review System**
-
+   - Soft delete implementation across all models
    - One review per user per book
    - Rating scale: 1-5 with decimal support
-   - Average rating and total reviews tracked at book level
-   - Reviews can be updated or soft-deleted
 
-4. **Pagination & Filtering**
-
-   - Default page size configurable via environment variable
-   - Support for filtering by genre, author
-   - Sorting options for books and reviews
-   - Case-insensitive search
-
-5. **Data Consistency**
-
-   - Transactions for operations affecting multiple tables
+3. **Data Consistency & Error Handling**
+   - Transaction support for multi-table operations
+   - Consistent response format
    - Proper error handling and validation
-   - Consistent response format across all endpoints
 
-6. **Security**
-   - JWT-based authentication
-   - Password hashing
-   - Input validation
-   - Rate limiting (to be implemented)
+## Created by
 
-## Environment Variables
-
-| Variable     | Description                  | Default |
-| ------------ | ---------------------------- | ------- |
-| DATABASE_URL | PostgreSQL connection string | -       |
-| PORT         | Server port                  | 3000    |
-| JWT_SECRET   | Secret key for JWT           | -       |
-| PAGE_SIZE    | Default items per page       | 10      |
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-
-This project is licensed under the MIT License.
+Manan kanani
+[Portfolio](https://portfolio.manankanani.in/)
+[github](https://github.com/MananKanani5/)
+[LinkedIn](https://www.linkedin.com/in/manan-kanani/)
